@@ -24,34 +24,41 @@ class _CommentPageState extends State<CommentPage> {
       appBar: AppBar(title: const Text('Comments')),
       body: BlocBuilder<CommentBloc, CommentState>(
         builder: (context, state) {
-          switch (state.status) {
-            case CommentsStatus.loading:
-              return const Center(child: CircularProgressIndicator());
-            case CommentsStatus.error:
-              return _ErrorView(
-                message: state.errorMessage ?? 'Something went wrong',
-                onRetry: () => context.read<CommentBloc>().add(FetchCommentsEvent()),
-              );
-            case CommentsStatus.success:
-              if (state.comments.isEmpty) {
-                return const Center(child: Text('No comments found.'));
-              }
-              return ListView.separated(
-                itemCount: state.comments.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final comment = state.comments[index];
-                  return ListTile(
-                    title: Text(comment.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: Text(comment.body, maxLines: 2, overflow: TextOverflow.ellipsis),
-                    trailing: Text('#${comment.postId}'),
-                    isThreeLine: true,
-                  );
-                },
-              );
-            case CommentsStatus.initial:
-            return const SizedBox.shrink();
-          }
+          return switch (state.status) {
+            CommentsStatus.loading => Center(
+              child: CircularProgressIndicator(),
+            ),
+            CommentsStatus.error => _ErrorView(
+              message: state.errorMessage ?? 'Something went wrong',
+              onRetry: () =>
+                  context.read<CommentBloc>().add(FetchCommentsEvent()),
+            ),
+            CommentsStatus.success when state.comments.isEmpty => const Center(
+              child: Text('No comments found.'),
+            ),
+            CommentsStatus.success => ListView.separated(
+              itemCount: state.comments.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final comment = state.comments[index];
+                return ListTile(
+                  title: Text(
+                    comment.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    comment.body,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  trailing: Text('#${comment.postId}'),
+                  isThreeLine: true,
+                );
+              },
+            ),
+            CommentsStatus.initial => const SizedBox.shrink(),
+          };
         },
       ),
     );
